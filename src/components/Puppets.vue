@@ -1,10 +1,11 @@
 <template>
   <div class="section section--main">
-    <div class="container">
+    <div class="row"  id="testcam" v-if="false">
+      <video id="player" style="width:500px; height:500px" ref="player" autoplay></video>
+    </div>          
       <div class="row">
         <div class="medium-8 column">
           <div class="card card--component">
-            <div class="row">
               <!--UPLOAD-->
               <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
                 <h1>Upload images</h1>
@@ -27,15 +28,14 @@
                 <div style="align-items: center; justify-content: center; padding-top:5px;">
                   <button class="button button--ghost" id="capture">Identify</button>
                 </div>
-                <div id="testcam">
-                  <video id="player" style="width:500px; height:500px" ref="player" autoplay></video>
-                </div>
-              </form>
+                </form>
               <!--SUCCESS-->
               <div v-if="isSuccess">
-                <h2>Uploaded {{ uploadedFiles.length }} file(s) successfully.</h2>
+
+                <h2>It is a {{tagName}}! I am {{ probability * 100 }}% certain</h2>
+               
                 <p>
-                  <a href="javascript:void(0)" @click="reset()">Try again</a>
+                  <a href="javascript:void(0)" class="button" @click="reset()">Go Again</a>
                 </p>
                 <img :src="`/images/${tagName}${Math.floor(Math.random() * Math.floor(3) + 1)}.jpeg`" :alt="tagName"/>
               </div>
@@ -47,11 +47,9 @@
                 </p>
                 <pre>{{ uploadError }}</pre>
               </div>
-            </div>
             <canvas ref="v-canvas" id="canvas" style="display:none"></canvas>
           </div>
         </div>
-      </div>
     </div>
   </div>
 </template>
@@ -165,6 +163,8 @@ export default class Puppets extends Vue {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 .dropbox {
+  width:100%;
+  display:box;
   outline: 2px dashed grey; /* the dash box */
   outline-offset: -10px;
   background: lightcyan;
