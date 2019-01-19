@@ -1,55 +1,55 @@
 <template>
   <div class="section section--main">
-    <div class="row">
-      <div class="medium-8 column">
-        <div class="card card--component">
-          <div class="row">
-            <!--UPLOAD-->
-            <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
-              <h1>Upload images</h1>
-              <div class="dropbox">
-                <input
-                  type="file"
-                  multiple
-                  :name="uploadFieldName"
-                  :disabled="isSaving"
-                  @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
-                  accept="image/*"
-                  class="input-file"
-                >
-                <p v-if="isInitial">Drag your file(s) here to begin
-                  <br>or click to browse
+    <div class="container">
+      <div class="row">
+        <div class="medium-8 column">
+          <div class="card card--component">
+            <div class="row">
+              <!--UPLOAD-->
+              <form enctype="multipart/form-data" novalidate v-if="isInitial || isSaving">
+                <h1>Upload images</h1>
+                <div class="dropbox">
+                  <input
+                    type="file"
+                    multiple
+                    :name="uploadFieldName"
+                    :disabled="isSaving"
+                    @change="filesChange($event.target.name, $event.target.files); fileCount = $event.target.files.length"
+                    accept="image/*"
+                    class="input-file"
+                    capture="camera"
+                  >
+                  <p v-if="isInitial">Drag your file(s) here to begin
+                    <br>or click to browse
+                  </p>
+                  <p v-if="isSaving">Uploading {{ fileCount }} files...</p>
+                </div>
+                <div style="align-items: center; justify-content: center; padding-top:5px;">
+                  <button class="button button--ghost" id="capture">Identify</button>
+                </div>
+                <div id="testcam">
+                  <video id="player" style="width:500px; height:500px" ref="player" autoplay></video>
+                </div>
+              </form>
+              <!--SUCCESS-->
+              <div v-if="isSuccess">
+                <h2>Uploaded {{ uploadedFiles.length }} file(s) successfully.</h2>
+                <p>
+                  <a href="javascript:void(0)" @click="reset()">Try again</a>
                 </p>
-                <p v-if="isSaving">Uploading {{ fileCount }} files...</p>
+                <img :src="`/images/${tagName}${Math.floor(Math.random() * Math.floor(3) + 1)}.jpeg`" :alt="tagName"/>
               </div>
-              <div style="align-items: center; justify-content: center; padding-top:5px;">
-                <button class="button button--ghost" id="capture">Identify</button>
+              <!--FAILED-->
+              <div v-if="isFailed">
+                <h2>Uploaded failed.</h2>
+                <p>
+                  <a href="javascript:void(0)" @click="reset()">Try again</a>
+                </p>
+                <pre>{{ uploadError }}</pre>
               </div>
-              <video id="player" ref="player" autoplay></video>
-            </form>
-            <!--SUCCESS-->
-            <div v-if="isSuccess">
-              <h2>Uploaded {{ uploadedFiles.length }} file(s) successfully.</h2>
-              <p>
-                <a href="javascript:void(0)" @click="reset()">Try again</a>
-              </p>
             </div>
-            <!--FAILED-->
-            <div v-if="isFailed">
-              <h2>Uploaded failed.</h2>
-              <p>
-                <a href="javascript:void(0)" @click="reset()">Try again</a>
-              </p>
-              <pre>{{ uploadError }}</pre>
-            </div>
+            <canvas ref="v-canvas" id="canvas" style="display:none"></canvas>
           </div>
-          <canvas ref="v-canvas" id="canvas" style="display:none"></canvas>
-          <form action="/Puppet/Identify" method="post" enctype="multipart/form-data">
-            <input class="button" type="file" accept="image/*" id="imgData" name="imgData">
-            <br>
-            <div style="padding-top:1em"></div>
-            <button class="button button--ghost" id="capture">From File</button>
-          </form>
         </div>
       </div>
     </div>
@@ -83,6 +83,8 @@ export default class Puppets extends Vue {
   uploadFieldName: String = "photos";
   fileCount: number = 0;
   mobile: boolean = false;
+  probability: number = 0;
+  tagName: string = 'dog';
 
   mounted() {
     console.log("Starting to detect ppuppets");
@@ -90,7 +92,7 @@ export default class Puppets extends Vue {
     this.canvas = <HTMLCanvasElement>this.$refs["v-canvas"];
     this.currentStatus = STATUS_INITIAL;
     this.videoPlayer = <HTMLVideoElement>this.$refs["player"];
-    if (!this.mobile && this.videoPlayer) {
+    if (!this.mobile) {
       console.info("getting-media");
       navigator.mediaDevices.getUserMedia(constraints).then(stream => {
         if (this.videoPlayer) this.videoPlayer.srcObject = stream;
@@ -119,8 +121,14 @@ export default class Puppets extends Vue {
     // upload data to the server
     this.currentStatus = STATUS_SAVING;
     upload(formData)
-      .then(wait(1500)) // DEV ONLY: wait for 1.5s
+      //.then(wait(1500)) // DEV ONLY: wait for 1.5s
       .then(x => {
+        let prediction = x.data.predictions[0];
+        if(prediction.probability > 0.7)
+        {
+          this.probability = prediction.probability;
+          this.tagName = prediction.tagName;
+        }
         this.uploadedFiles = [];
         this.currentStatus = STATUS_SUCCESS;
       })
@@ -149,8 +157,6 @@ export default class Puppets extends Vue {
         array.push(blobBin.charCodeAt(i));
       }
       var file = new Blob([new Uint8Array(array)], { type: "image/png" });
-      
-      
     }
   }
 }
