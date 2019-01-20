@@ -25,19 +25,17 @@
                   </p>
                   <p v-if="isSaving">Uploading {{ fileCount }} files...</p>
                 </div>
-                <div style="align-items: center; justify-content: center; padding-top:5px;">
+                <div v-if="false" style="align-items: center; justify-content: center; padding-top:5px;">
                   <button class="button button--ghost" id="capture">Identify</button>
                 </div>
                 </form>
               <!--SUCCESS-->
               <div v-if="isSuccess">
-
-                <h2>It is a {{tagName}}! I am {{ probability * 100 }}% certain</h2>
-               
+                <h2>It is a {{tagName}}! I am {{ probability * 100 }}% certain</h2>              
                 <p>
                   <a href="javascript:void(0)" class="button" @click="reset()">Go Again</a>
                 </p>
-                <img :src="`/images/${tagName}${Math.floor(Math.random() * Math.floor(3) + 1)}.jpeg`" :alt="tagName"/>
+                <img :src="`/images/${tagName}.jpeg`" :alt="tagName"/>
               </div>
               <!--FAILED-->
               <div v-if="isFailed">
