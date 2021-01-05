@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@types/ismobilejs": "^0.4.1",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "ismobilejs": "^0.5.1",
     "vue": "^2.5.21",
     "vue-class-component": "^6.0.0",
